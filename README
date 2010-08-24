@@ -1,0 +1,12 @@
+- Install postgres and create a 'geonames' database.
+- Download Geonames from http://download.geonames.org/export/dump
+- Run import-geonames.sh
+- Create a geouser account with password geopw, grant permissions on the table:
+  GRANT ALL PRIVILEGES ON geoname, admin1codes, countryInfo TO geouser
+  (slightly excessive, it just needs to query)
+- Install and configure Sphinx (/etc/sphinxsearch/sphinx.conf ) from universe.
+- Create an index on geonameid which should reduce query times:
+  CREATE INDEX geoname_id_idx ON geoname(geonameid);
+- Install sphinxapi-python from ppa:~ev
+- Install CherryPy from universe.
+- Run geoname.py, query with http://localhost:8080/?query=wandsworth
