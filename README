@@ -9,4 +9,11 @@
   CREATE INDEX geoname_id_idx ON geoname(geonameid);
 - Install sphinxapi-python from ppa:~ev
 - Install CherryPy from universe.
+- Alternatively, install Apache and mod_python, then copy geoname-modpython.py
+  to /var/www and edit the apache configuration:
+  <Directory /var/www/>
+        AddHandler mod_python .py
+        PythonHandler geoname-modpython
+        DirectoryIndex geoname-modpython.py
+  </Directory>
 - Run geoname.py, query with http://localhost:8080/?query=wandsworth
