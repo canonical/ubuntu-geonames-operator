@@ -3,7 +3,7 @@ from mod_python import apache
 import sphinxapi
 import psycopg2
 statement = "SELECT geoname.name, admin1codes.name, countryInfo.name, \
-geoname.latitude, geoname.longitude FROM admin1codes, geoname, countryInfo \
+geoname.longitude, geoname.latitude FROM admin1codes, geoname, countryInfo \
 WHERE code = geoname.country||'.'||geoname.admin1 AND \
 countryInfo.iso_alpha2=geoname.country AND geoname.geonameid=%s;"
 authstring = 'dbname=geonames user=geouser password=geopw host=localhost'
