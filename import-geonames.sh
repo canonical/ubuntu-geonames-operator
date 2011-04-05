@@ -8,7 +8,7 @@ trap "rm -rf $WORKPATH" EXIT HUP INT QUIT TERM
 # allCountries.zip contains allCountries.txt
 # alternateNames.zip contains iso-languagecodes.txt alternateNames.txt
 ZIPFILES="allCountries.zip alternateNames.zip"
-TXTFILES="admin1Codes.txt admin1CodesASCII.txt countryInfo.txt featureCodes.txt timeZones.txt"
+TXTFILES="admin1Codes.txt admin1CodesASCII.txt countryInfo.txt timeZones.txt"
 for i in $ZIPFILES $TXTFILES
 do
 	wget "http://download.geonames.org/export/dump/$i"
@@ -108,14 +108,6 @@ CREATE TABLE admin1CodesAscii (
 	geonameid int
 );
 copy admin1CodesAscii (code,name,nameAscii,geonameid) from '$WORKPATH/admin1CodesASCII.txt' null as '';
-
-DROP TABLE featureCodes;
-CREATE TABLE featureCodes (
-	code CHAR(7),
-	name VARCHAR(200),
-	description TEXT
-);
-copy featureCodes (code,name,description) from '$WORKPATH/featureCodes.txt' null as '';
 
 DROP TABLE timeZones;
 CREATE TABLE timeZones (
