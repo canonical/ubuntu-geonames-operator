@@ -24,6 +24,7 @@ grep -v '^#' countryInfo.txt | tail -n +2 > countryInfo.txt.tmp
 tail -n +2 timeZones.txt > timeZones.txt.tmp
  
 sudo -u postgres psql geonames <<EOT
+BEGIN;
 DROP TABLE geoname;
 CREATE TABLE geoname (
 	geonameid int,
@@ -141,4 +142,5 @@ INSERT INTO continentCodes VALUES ('AN', 'Antarctica', 6255152);
 CREATE INDEX geoname_id_idx ON geoname(geonameid);
 CREATE INDEX geoname_admin1codes_code_idx ON admin1codes(code);
 CREATE INDEX geoname_countryinfo_isoalpha2_idx ON countryinfo(iso_alpha2);
+COMMIT;
 EOT
