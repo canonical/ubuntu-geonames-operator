@@ -1,39 +1,27 @@
 #!/bin/bash
  
- WORKPATH="/tmp/geodata"
+WORKPATH="$(mktemp -d)"
  
- cd $WORKPATH
+cd $WORKPATH
+trap rm -rf $WORKPATH EXIT HUP INT QUIT TERM
  
- # download all needed files and if needed unzip them
- ZIPFILES="allCountries.zip alternateNames.zip userTags.zip"
- TXTFILES="admin1Codes.txt admin1CodesASCII.txt admin2Codes.txt countryInfo.txt featureCodes.txt iso-languagecodes.txt timeZones.txt"
-# for i in $ZIPFILES $TXTFILES
-# do
-# 	wget "http://download.geonames.org/export/dump/$i"
-# 	echo "Done download $i"
-# done
-# for i in $ZIPFILES
-# do
-# 	unzip -o -qq $i
-# done
-# 
-# # rename files because of name conflict
-# mv allCountries.zip allGeoCountries.zip
-# mv allCountries.txt allGeoCountries.txt
+# allCountries.zip contains allCountries.txt
+# alternateNames.zip contains iso-languagecodes.txt alternateNames.txt
+ZIPFILES="allCountries.zip alternateNames.zip"
+TXTFILES="admin1Codes.txt admin1CodesASCII.txt countryInfo.txt featureCodes.txt timeZones.txt"
+for i in $ZIPFILES $TXTFILES
+do
+	wget "http://download.geonames.org/export/dump/$i"
+done
+for i in $ZIPFILES
+do
+	unzip -o -qq $i
+done
  
- # download the postalcodes. You must know yourself the url
- #wget <a href="http://xxx" target="_blank" rel="nofollow">http://xxx</a>
- #echo "Done download postal codes (xxx)"
- #unzip -o -qq xxx
- 
- # rename files because of name conflict
- #mv xxx xxx
- #mv xxx xxx
- 
- # alter files for import
- tail -n +2 iso-languagecodes.txt > iso-languagecodes.txt.tmp
- grep -v '^#' countryInfo.txt | tail -n +2 > countryInfo.txt.tmp
- tail -n +2 timeZones.txt > timeZones.txt.tmp
+# alter files for import
+tail -n +2 iso-languagecodes.txt > iso-languagecodes.txt.tmp
+grep -v '^#' countryInfo.txt | tail -n +2 > countryInfo.txt.tmp
+tail -n +2 timeZones.txt > timeZones.txt.tmp
  
 sudo -u postgres psql geonames <<EOT
 DROP TABLE geoname;
@@ -58,7 +46,7 @@ CREATE TABLE geoname (
 	timezone varchar(40),
 	moddate date
 );
-copy geoname (geonameid,name,asciiname,alternatenames,latitude,longitude,fclass,fcode,country,cc2, admin1,admin2,admin3,admin4,population,elevation,gtopo30,timezone,moddate) from '${WORKPATH}/allGeoCountries.txt' null as '';
+copy geoname (geonameid,name,asciiname,alternatenames,latitude,longitude,fclass,fcode,country,cc2, admin1,admin2,admin3,admin4,population,elevation,gtopo30,timezone,moddate) from '$WORKPATH/allCountries.txt' null as '';
 
 DROP TABLE alternatename;
 CREATE TABLE alternatename (
@@ -69,7 +57,7 @@ CREATE TABLE alternatename (
 	isPreferredName boolean,
 	isShortName boolean
 );
-copy alternatename  (alternatenameid,geonameid,isoLanguage,alternateName,isPreferredName,isShortName) from '${WORKPATH}/alternateNames.txt' null as '';
+copy alternatename  (alternatenameid,geonameid,isoLanguage,alternateName,isPreferredName,isShortName) from '$WORKPATH/alternateNames.txt' null as '';
 
 DROP TABLE countryinfo;
 CREATE TABLE countryinfo (
@@ -93,7 +81,7 @@ CREATE TABLE countryinfo (
 	neighbours char(50), 
 	equivalentFipsCode char(10)
 );
-copy countryInfo (iso_alpha2,iso_alpha3,iso_numeric,fips_code,name,capital,areaInSqKm,population,continent,tld,currency,currencyName,Phone,postalCodeFormat,postalCodeRegex,languages,geonameId,neighbours,equivalentFipsCode) from '${WORKPATH}/countryInfo.txt.tmp' null as '';
+copy countryInfo (iso_alpha2,iso_alpha3,iso_numeric,fips_code,name,capital,areaInSqKm,population,continent,tld,currency,currencyName,Phone,postalCodeFormat,postalCodeRegex,languages,geonameId,neighbours,equivalentFipsCode) from '$WORKPATH/countryInfo.txt.tmp' null as '';
 
 DROP TABLE iso_languagecodes;
 CREATE TABLE iso_languagecodes(
@@ -102,14 +90,14 @@ CREATE TABLE iso_languagecodes(
 	iso_639_1 VARCHAR(50),
 	language_name VARCHAR(200)
 );
-copy iso_languagecodes (iso_639_3, iso_639_2, iso_639_1, language_name) from '${WORKPATH}/iso-languagecodes.txt.tmp' null as '';
+copy iso_languagecodes (iso_639_3, iso_639_2, iso_639_1, language_name) from '$WORKPATH/iso-languagecodes.txt.tmp' null as '';
 
 DROP TABLE admin1Codes;
 CREATE TABLE admin1Codes (
 	code varchar(10),
 	name TEXT
 );
-copy admin1Codes (code, name) from '${WORKPATH}/admin1Codes.txt' null as '';
+copy admin1Codes (code, name) from '$WORKPATH/admin1Codes.txt' null as '';
 
 DROP TABLE admin1CodesAscii;
 CREATE TABLE admin1CodesAscii (
@@ -118,7 +106,7 @@ CREATE TABLE admin1CodesAscii (
 	nameAscii TEXT,
 	geonameid int
 );
-copy admin1CodesAscii (code,name,nameAscii,geonameid) from '${WORKPATH}/admin1CodesASCII.txt' null as '';
+copy admin1CodesAscii (code,name,nameAscii,geonameid) from '$WORKPATH/admin1CodesASCII.txt' null as '';
 
 DROP TABLE featureCodes;
 CREATE TABLE featureCodes (
@@ -126,7 +114,7 @@ CREATE TABLE featureCodes (
 	name VARCHAR(200),
 	description TEXT
 );
-copy featureCodes (code,name,description) from '${WORKPATH}/featureCodes.txt' null as '';
+copy featureCodes (code,name,description) from '$WORKPATH/featureCodes.txt' null as '';
 
 DROP TABLE timeZones;
 CREATE TABLE timeZones (
@@ -134,7 +122,7 @@ CREATE TABLE timeZones (
 	GMT_offset numeric(3,1),
 	DST_offset numeric(3,1)
 );
-copy timeZones (timeZoneId,GMT_offset,DST_offset) from '${WORKPATH}/timeZones.txt.tmp' null as '';
+copy timeZones (timeZoneId,GMT_offset,DST_offset) from '$WORKPATH/timeZones.txt.tmp' null as '';
 
 DROP TABLE continentCodes;
 CREATE TABLE continentCodes (
@@ -150,20 +138,5 @@ INSERT INTO continentCodes VALUES ('OC', 'Oceania', 6255150);
 INSERT INTO continentCodes VALUES ('SA', 'South America', 6255151);
 INSERT INTO continentCodes VALUES ('AN', 'Antarctica', 6255152);
 
-
-DROP TABLE postalcodes;
-CREATE TABLE postalcodes (
-	countrycode char(2),
-	postalcode varchar(10),
-	placename varchar(180),
-	admin1name varchar(100),
-	admin1code varchar(20),
-	admin2name varchar(100),
-	admin2code varchar(20),
-	admin3name varchar(100),
-	latitude float,
-	longitude float,
-	accuracy smallint
-);
-copy postalcodes (countrycode,postalcode,placename,admin1name,admin1code,admin2name,admin2code,admin3name,latitude,longitude,accuracy) from '${WORKPATH}/allTZCountries.txt' null as '';
+CREATE INDEX geoname_id_idx ON geoname(geonameid);
 EOT
