@@ -18,6 +18,7 @@ def handler(req):
     if fs.has_key('query'):
         client = sphinxapi.SphinxClient()
         client.SetServer('localhost', 3312)
+        client.SetSortMode(sphinxapi.SPH_SORT_ATTR_DESC, 'population')
         result = client.Query(fs['query'])
         if result:
             result = result['matches']
