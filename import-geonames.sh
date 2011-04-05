@@ -3,7 +3,7 @@
 WORKPATH="$(mktemp -d)"
  
 cd $WORKPATH
-trap rm -rf $WORKPATH EXIT HUP INT QUIT TERM
+trap "rm -rf $WORKPATH" EXIT HUP INT QUIT TERM
  
 # allCountries.zip contains allCountries.txt
 # alternateNames.zip contains iso-languagecodes.txt alternateNames.txt
