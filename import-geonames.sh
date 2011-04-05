@@ -2,6 +2,7 @@
  
 WORKPATH="$(mktemp -d)"
  
+chmod 755 $WORKPATH
 cd $WORKPATH
 trap "rm -rf $WORKPATH" EXIT HUP INT QUIT TERM
  
