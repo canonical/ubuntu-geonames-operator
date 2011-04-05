@@ -135,5 +135,6 @@ INSERT INTO continentCodes VALUES ('AN', 'Antarctica', 6255152);
 CREATE INDEX geoname_id_idx ON geoname(geonameid);
 CREATE INDEX geoname_admin1codes_code_idx ON admin1codes(code);
 CREATE INDEX geoname_countryinfo_isoalpha2_idx ON countryinfo(iso_alpha2);
+GRANT ALL PRIVILEGES ON geoname, admin1codes, countryInfo TO geouser;
 COMMIT;
 EOT
