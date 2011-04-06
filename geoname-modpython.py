@@ -6,6 +6,10 @@ statement = "SELECT geoname.name, admin1codes.name, countryInfo.name, \
 geoname.longitude, geoname.latitude FROM admin1codes, geoname, countryInfo \
 WHERE code = geoname.country||'.'||geoname.admin1 AND \
 countryInfo.iso_alpha2=geoname.country AND geoname.geonameid=%s;"
+altstatement = "SELECT alternatename.alternateName, admin1codes.name, countryInfo.name, \
+geoname.longitude, geoname.latitude FROM alternatename, admin1codes, geoname, countryInfo \
+WHERE code = geoname.country||'.'||geoname.admin1 AND \
+countryInfo.iso_alpha2=geoname.country AND alternatename.geonameid=geoname.geonameid AND alternatename.alternatenameId=%s;"
 authstring = 'dbname=geonames user=geouser password=geopw host=localhost'
 jsonheader = '['
 jsonfooter = ']'
@@ -28,7 +32,13 @@ def handler(req):
             cursor = connection.cursor()
             try:
                 for x in result:
-                    cursor.execute(statement % x['id'])
+                    rawid = x['id']
+                    idval = rawid / 10
+                    idtype = rawid % 10
+                    if idtype == 1:
+                        cursor.execute(statement % idval)
+                    else:
+                        cursor.execute(altstatement % idval)
                     record = cursor.fetchone()
                     if record:
                         ret.append(jsonentry % record)
