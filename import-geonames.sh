@@ -21,7 +21,7 @@ done
  
 # alter files for import
 tail -n +2 iso-languagecodes.txt > iso-languagecodes.txt.tmp
-grep -v '^#' countryInfo.txt | tail -n +2 > countryInfo.txt.tmp
+grep -v '^#' countryInfo.txt > countryInfo.txt.tmp
 tail -n +2 timeZones.txt > timeZones.txt.tmp
  
 sudo -u postgres psql geonames <<EOT
