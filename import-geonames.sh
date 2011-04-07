@@ -26,7 +26,7 @@ tail -n +2 timeZones.txt > timeZones.txt.tmp
  
 sudo -u postgres psql geonames <<EOT
 BEGIN;
-DROP TABLE geoname;
+DROP TABLE IF EXISTS geoname;
 CREATE TABLE geoname (
 	geonameid int,
 	name varchar(200),
@@ -50,7 +50,7 @@ CREATE TABLE geoname (
 );
 copy geoname (geonameid,name,asciiname,alternatenames,latitude,longitude,fclass,fcode,country,cc2, admin1,admin2,admin3,admin4,population,elevation,gtopo30,timezone,moddate) from '$WORKPATH/allCountries.txt' null as '';
 
-DROP TABLE alternatename;
+DROP TABLE IF EXISTS alternatename;
 CREATE TABLE alternatename (
 	alternatenameId int,
 	geonameid int,
@@ -61,7 +61,7 @@ CREATE TABLE alternatename (
 );
 copy alternatename  (alternatenameid,geonameid,isoLanguage,alternateName,isPreferredName,isShortName) from '$WORKPATH/alternateNames.txt' null as '';
 
-DROP TABLE countryinfo;
+DROP TABLE IF EXISTS countryinfo;
 CREATE TABLE countryinfo (
 	iso_alpha2 char(2),
 	iso_alpha3 char(3),
@@ -85,7 +85,7 @@ CREATE TABLE countryinfo (
 );
 copy countryInfo (iso_alpha2,iso_alpha3,iso_numeric,fips_code,name,capital,areaInSqKm,population,continent,tld,currency,currencyName,Phone,postalCodeFormat,postalCodeRegex,languages,geonameId,neighbours,equivalentFipsCode) from '$WORKPATH/countryInfo.txt.tmp' null as '';
 
-DROP TABLE iso_languagecodes;
+DROP TABLE IF EXISTS iso_languagecodes;
 CREATE TABLE iso_languagecodes(
 	iso_639_3 CHAR(4),
 	iso_639_2 VARCHAR(50),
@@ -94,14 +94,14 @@ CREATE TABLE iso_languagecodes(
 );
 copy iso_languagecodes (iso_639_3, iso_639_2, iso_639_1, language_name) from '$WORKPATH/iso-languagecodes.txt.tmp' null as '';
 
-DROP TABLE admin1Codes;
+DROP TABLE IF EXISTS admin1Codes;
 CREATE TABLE admin1Codes (
 	code varchar(10),
 	name TEXT
 );
 copy admin1Codes (code, name) from '$WORKPATH/admin1Codes.txt' null as '';
 
-DROP TABLE admin1CodesAscii;
+DROP TABLE IF EXISTS admin1CodesAscii;
 CREATE TABLE admin1CodesAscii (
 	code varchar(10),
 	name TEXT,
@@ -110,7 +110,7 @@ CREATE TABLE admin1CodesAscii (
 );
 copy admin1CodesAscii (code,name,nameAscii,geonameid) from '$WORKPATH/admin1CodesASCII.txt' null as '';
 
-DROP TABLE timeZones;
+DROP TABLE IF EXISTS timeZones;
 CREATE TABLE timeZones (
 	timeZoneId VARCHAR(200),
 	GMT_offset numeric(3,1),
@@ -118,7 +118,7 @@ CREATE TABLE timeZones (
 );
 copy timeZones (timeZoneId,GMT_offset,DST_offset) from '$WORKPATH/timeZones.txt.tmp' null as '';
 
-DROP TABLE continentCodes;
+DROP TABLE IF EXISTS continentCodes;
 CREATE TABLE continentCodes (
 	code CHAR(2),
 	name VARCHAR(20),
