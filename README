@@ -1,12 +1,12 @@
 - Install postgres and create a 'geonames' database.
-- Download Geonames from http://download.geonames.org/export/dump
+- Create a geouser account with password geopw
 - Run import-geonames.sh
-- Create a geouser account with password geopw, grant permissions on the table:
-  GRANT ALL PRIVILEGES ON geoname, admin1codes, countryInfo TO geouser
-  (slightly excessive, it just needs to query)
-- Install and configure Sphinx (/etc/sphinxsearch/sphinx.conf ) from universe.
-- Create an index on geonameid which should reduce query times:
-  CREATE INDEX geoname_id_idx ON geoname(geonameid);
+  + it downloads & populates the database
+  + grants slightly excessive permissions to geouser for queries
+- Install sphinxsearch and configure (/etc/sphinxsearch/sphinx.conf ) from universe.
+  + run $ sudo indexer geonames
+  + Enable /etc/default/sphinxsearch
+  + start $ sudo service sphinxsearch start
 - Install sphinxapi-python from ppa:~ev and use or modify the sphinx.conf
   provided.
 - Install CherryPy from universe.
