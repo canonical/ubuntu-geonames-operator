@@ -5,11 +5,12 @@ import psycopg2
 statement = "SELECT geoname.name, admin1codes.name, countryInfo.name, \
 geoname.longitude, geoname.latitude FROM admin1codes, geoname, countryInfo \
 WHERE code = geoname.country||'.'||geoname.admin1 AND \
-countryInfo.iso_alpha2=geoname.country AND geoname.geonameid=%s;"
-altstatement = "SELECT alternatename.alternateName, admin1codes.name, countryInfo.name, \
+countryInfo.iso_alpha2=geoname.country AND geoname.geonameid in %s \
+UNION \
+SELECT alternatename.alternateName, admin1codes.name, countryInfo.name, \
 geoname.longitude, geoname.latitude FROM alternatename, admin1codes, geoname, countryInfo \
 WHERE code = geoname.country||'.'||geoname.admin1 AND \
-countryInfo.iso_alpha2=geoname.country AND alternatename.geonameid=geoname.geonameid AND alternatename.alternatenameId=%s;"
+countryInfo.iso_alpha2=geoname.country AND alternatename.geonameid=geoname.geonameid AND alternatename.alternatenameId in %s;"
 authstring = 'dbname=geonames user=geouser password=geopw host=localhost'
 jsonheader = '['
 jsonfooter = ']'
@@ -31,17 +32,23 @@ def handler(req):
             connection = psycopg2.connect(authstring)
             cursor = connection.cursor()
             try:
+                # We need at least one value for the sql in operator
+                # and there are no locations with id 0
+                statement_ids = [0]
+                altstatement_ids = [0]
                 for x in result:
                     rawid = x['id']
                     idval = rawid / 10
                     idtype = rawid % 10
                     if idtype == 1:
-                        cursor.execute(statement % idval)
+                        statement_ids.append(idval)
                     else:
-                        cursor.execute(altstatement % idval)
-                    record = cursor.fetchone()
-                    if record:
-                        ret.append(jsonentry % record)
+                        altstatement_ids.append(idval)
+
+                cursor.execute(statement, (tuple(statement_ids), tuple(altstatement_ids)))
+                records = cursor.fetchall()
+                for record in records:
+                    ret.append(jsonentry % record)
             finally:
                 cursor.close()
                 connection.close()
