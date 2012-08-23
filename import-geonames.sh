@@ -9,7 +9,7 @@ trap "rm -rf $WORKPATH" EXIT HUP INT QUIT TERM
 # allCountries.zip contains allCountries.txt
 # alternateNames.zip contains iso-languagecodes.txt alternateNames.txt
 ZIPFILES="allCountries.zip alternateNames.zip"
-TXTFILES="admin1Codes.txt admin1CodesASCII.txt countryInfo.txt timeZones.txt"
+TXTFILES="admin1CodesASCII.txt countryInfo.txt timeZones.txt"
 for i in $ZIPFILES $TXTFILES
 do
 	wget "http://download.geonames.org/export/dump/$i"
@@ -24,14 +24,14 @@ tail -n +2 iso-languagecodes.txt > iso-languagecodes.txt.tmp
 grep -v '^#' countryInfo.txt > countryInfo.txt.tmp
 tail -n +2 timeZones.txt > timeZones.txt.tmp
  
-sudo -u postgres psql geonames <<EOT
+psql geonames <<EOT
 BEGIN;
 DROP TABLE IF EXISTS geoname;
 CREATE TABLE geoname (
 	geonameid int,
 	name varchar(200),
 	asciiname varchar(200),
-	alternatenames varchar(6000),
+	alternatenames varchar(10000),
 	latitude float,
 	longitude float,
 	fclass char(1),
@@ -57,9 +57,11 @@ CREATE TABLE alternatename (
 	isoLanguage varchar(7),
 	alternateName varchar(200),
 	isPreferredName boolean,
-	isShortName boolean
+	isShortName boolean,
+	isColloquial boolean,
+	isHistoric boolean
 );
-copy alternatename  (alternatenameid,geonameid,isoLanguage,alternateName,isPreferredName,isShortName) from '$WORKPATH/alternateNames.txt' null as '';
+copy alternatename  (alternatenameid,geonameid,isoLanguage,alternateName,isPreferredName,isShortName,isColloquial,isHistoric) from '$WORKPATH/alternateNames.txt' null as '';
 
 DROP TABLE IF EXISTS countryinfo;
 CREATE TABLE countryinfo (
@@ -94,29 +96,24 @@ CREATE TABLE iso_languagecodes(
 );
 copy iso_languagecodes (iso_639_3, iso_639_2, iso_639_1, language_name) from '$WORKPATH/iso-languagecodes.txt.tmp' null as '';
 
-DROP TABLE IF EXISTS admin1Codes;
-CREATE TABLE admin1Codes (
-	code varchar(10),
-	name TEXT
-);
-copy admin1Codes (code, name) from '$WORKPATH/admin1Codes.txt' null as '';
-
-DROP TABLE IF EXISTS admin1CodesAscii;
-CREATE TABLE admin1CodesAscii (
+DROP TABLE IF EXISTS admin1codes;
+CREATE TABLE admin1codes (
 	code varchar(10),
 	name TEXT,
 	nameAscii TEXT,
 	geonameid int
 );
-copy admin1CodesAscii (code,name,nameAscii,geonameid) from '$WORKPATH/admin1CodesASCII.txt' null as '';
+copy admin1codes (code,name,nameAscii,geonameid) from '$WORKPATH/admin1CodesASCII.txt' null as '';
 
 DROP TABLE IF EXISTS timeZones;
 CREATE TABLE timeZones (
+	code CHAR(2),
 	timeZoneId VARCHAR(200),
 	GMT_offset numeric(3,1),
-	DST_offset numeric(3,1)
+	DST_offset numeric(3,1),
+	RAW_offset numeric(3,1)
 );
-copy timeZones (timeZoneId,GMT_offset,DST_offset) from '$WORKPATH/timeZones.txt.tmp' null as '';
+copy timeZones (code,timeZoneId,GMT_offset,DST_offset,RAW_offset) from '$WORKPATH/timeZones.txt.tmp' null as '';
 
 DROP TABLE IF EXISTS continentCodes;
 CREATE TABLE continentCodes (
