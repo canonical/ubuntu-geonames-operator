@@ -34,18 +34,21 @@ def handler(req):
             try:
                 # We need at least one value for the sql in operator
                 # and there are no locations with id 0
-                statement_ids = [0]
-                altstatement_ids = [0]
+                statement_ids = ['0']
+                altstatement_ids = ['0']
                 for x in result:
                     rawid = x['id']
                     idval = rawid / 10
                     idtype = rawid % 10
                     if idtype == 1:
-                        statement_ids.append(idval)
+                        statement_ids.append(str(idval))
                     else:
-                        altstatement_ids.append(idval)
+                        altstatement_ids.append(str(idval))
 
-                cursor.execute(statement, (tuple(statement_ids), tuple(altstatement_ids)))
+                statement_ids_str = '(' + ','.join(statement_ids) + ')'
+                altstatement_ids_str = '(' + ','.join(altstatement_ids) + ')'
+                fullstatement = statement % (statement_ids_str, altstatement_ids_str)
+                cursor.execute(fullstatement)
                 records = cursor.fetchall()
                 for record in records:
                     ret.append(jsonentry % record)

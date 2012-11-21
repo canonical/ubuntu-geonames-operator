@@ -9,12 +9,13 @@
   + start $ sudo service sphinxsearch start
 - Install sphinxapi-python from ppa:~ev and use or modify the sphinx.conf
   provided.
-- Install CherryPy from universe.
-- Alternatively, install Apache and mod_python, then copy geoname-modpython.py
+- Install python-psycopg2
+- Install Apache and mod_python, then copy geoname-modpython.py
   to /var/www and edit the apache configuration:
   <Directory /var/www/>
         AddHandler mod_python .py
         PythonHandler geoname-modpython
         DirectoryIndex geoname-modpython.py
   </Directory>
-- Run geoname.py, query with http://localhost:8080/?query=wandsworth
+- test http://localhost:1234/?query=New%20York
+- check apache error.log
