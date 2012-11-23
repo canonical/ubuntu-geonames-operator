@@ -2,6 +2,11 @@ from mod_python import util
 from mod_python import apache
 import sphinxapi
 import psycopg2
+try:
+    from config import authstring
+except ImportError:
+    authstring = 'dbname=geonames user=geouser password=geopw host=localhost'
+
 statement = "SELECT geoname.name, admin1codes.name, countryInfo.name, \
 geoname.longitude, geoname.latitude FROM admin1codes, geoname, countryInfo \
 WHERE code = geoname.country||'.'||geoname.admin1 AND \
@@ -11,16 +16,16 @@ SELECT alternatename.alternateName, admin1codes.name, countryInfo.name, \
 geoname.longitude, geoname.latitude FROM alternatename, admin1codes, geoname, countryInfo \
 WHERE code = geoname.country||'.'||geoname.admin1 AND \
 countryInfo.iso_alpha2=geoname.country AND alternatename.geonameid=geoname.geonameid AND alternatename.alternatenameId in %s;"
-authstring = 'dbname=geonames user=geouser password=geopw host=localhost'
 jsonheader = '['
 jsonfooter = ']'
 jsonentry = '{"name" : "%s", "admin1" : "%s", "country" : "%s", ' \
             '"longitude" : "%F", "latitude" : "%F" }'
 
+
 def handler(req):
     fs = util.FieldStorage(req)
     req.content_type = 'application/json'
-    if fs.has_key('query'):
+    if 'query' in fs:
         client = sphinxapi.SphinxClient()
         client.SetServer('localhost', 3312)
         client.SetSortMode(sphinxapi.SPH_SORT_ATTR_DESC, 'population')
@@ -47,7 +52,8 @@ def handler(req):
 
                 statement_ids_str = '(' + ','.join(statement_ids) + ')'
                 altstatement_ids_str = '(' + ','.join(altstatement_ids) + ')'
-                fullstatement = statement % (statement_ids_str, altstatement_ids_str)
+                fullstatement = statement % (statement_ids_str,
+                                             altstatement_ids_str)
                 cursor.execute(fullstatement)
                 records = cursor.fetchall()
                 for record in records:
