@@ -7,15 +7,34 @@ try:
 except ImportError:
     authstring = 'dbname=geonames user=geouser password=geopw host=localhost'
 
-statement = "SELECT geoname.name, admin1codes.name, countryInfo.name, \
-geoname.longitude, geoname.latitude FROM admin1codes, geoname, countryInfo \
-WHERE code = geoname.country||'.'||geoname.admin1 AND \
-countryInfo.iso_alpha2=geoname.country AND geoname.geonameid in %s \
-UNION \
-SELECT alternatename.alternateName, admin1codes.name, countryInfo.name, \
-geoname.longitude, geoname.latitude FROM alternatename, admin1codes, geoname, countryInfo \
-WHERE code = geoname.country||'.'||geoname.admin1 AND \
-countryInfo.iso_alpha2=geoname.country AND alternatename.geonameid=geoname.geonameid AND alternatename.alternatenameId in %s;"
+statement = """
+SELECT
+geoname.name,
+admin1codes.name,
+countryInfo.name,
+geoname.longitude,
+geoname.latitude,
+geoname.population
+FROM geoname
+left join countryInfo on (geoname.country = countryInfo.iso_alpha2)
+left join admin1codes on (admin1codes.code = geoname.country||'.'||geoname.admin1)
+WHERE geoname.geonameid in %s
+UNION
+SELECT
+alternatename.alternatename,
+admin1codes.name,
+countryInfo.name,
+geoname.longitude,
+geoname.latitude,
+geoname.population
+FROM
+alternatename
+left join geoname on (geoname.geonameid=alternatename.geonameid)
+left join countryInfo on (geoname.country = countryInfo.iso_alpha2)
+left join admin1codes on (admin1codes.code = geoname.country||'.'||geoname.admin1)
+where alternatename.alternatenameId in %s
+ORDER by population desc;
+"""
 jsonheader = '['
 jsonfooter = ']'
 jsonentry = '{"name" : "%s", "admin1" : "%s", "country" : "%s", ' \
@@ -57,7 +76,9 @@ def handler(req):
                 cursor.execute(fullstatement)
                 records = cursor.fetchall()
                 for record in records:
-                    ret.append(jsonentry % record)
+                    record = tuple([f or '' for f in record])
+                    # Do not expose population column
+                    ret.append(jsonentry % record[:-1])
             finally:
                 cursor.close()
                 connection.close()
