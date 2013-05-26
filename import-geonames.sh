@@ -1,21 +1,26 @@
 #!/bin/bash
 # If DB is local pass no arguments else
-# ./import-geonames.sh user password host port dbname
-PGUSER=$1
-PGUSER_PARAM=${PGUSER:+"--username $PGUSER"}
-PGHOST=${2:+"--host $2"}
-PGPORT=${3:+"--port $3"}
-PGDBNAME=${4:+"--dbname $4"}
-if [[ -z $PGUSER ]]; then
-    PSQL_CMD="psql geonames"
-else
-    PSQL_CMD="psql $PGUSER_PARAM $PGPASS $PGHOST $PGPORT $PGDBNAME"
+# ./import-geonames.sh -u user -h host -p port -d dbname
+while getopts u:h:p:d flag; do
+    case $flag in
+        u) PGUSER=$OPTARG;
+           PGUSER_PARAM="--username $OPTARG";;
+        h) PGHOST="--host $OPTARG";;
+        p) PGPORT="--port $OPTARG";;
+        d) PGDBNAME="--dbname $OPTARG";;
+    esac
+done
+
+if [[ -z $PGDBNAME ]]; then
+    PGDBNAME="geonames"
 fi
+
+PSQL_CMD="psql $PGUSER_PARAM $PGPASS $PGHOST $PGPORT $PGDBNAME"
 WORKPATH="$(mktemp -d)"
  
 chmod 755 $WORKPATH
 cd $WORKPATH
-#trap "rm -rf $WORKPATH" EXIT HUP INT QUIT TERM
+trap "rm -rf $WORKPATH" EXIT HUP INT QUIT TERM
 pwd 
 # allCountries.zip contains allCountries.txt
 # alternateNames.zip contains iso-languagecodes.txt alternateNames.txt
