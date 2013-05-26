@@ -1,11 +1,22 @@
 #!/bin/bash
- 
+# If DB is local pass no arguments else
+# ./import-geonames.sh user password host port dbname
+PGUSER=$1
+PGUSER_PARAM=${PGUSER:+"--username $PGUSER"}
+PGHOST=${2:+"--host $2"}
+PGPORT=${3:+"--port $3"}
+PGDBNAME=${4:+"--dbname $4"}
+if [[ -z $PGUSER ]]; then
+    PSQL_CMD="psql geonames"
+else
+    PSQL_CMD="psql $PGUSER_PARAM $PGPASS $PGHOST $PGPORT $PGDBNAME"
+fi
 WORKPATH="$(mktemp -d)"
  
 chmod 755 $WORKPATH
 cd $WORKPATH
-trap "rm -rf $WORKPATH" EXIT HUP INT QUIT TERM
- 
+#trap "rm -rf $WORKPATH" EXIT HUP INT QUIT TERM
+pwd 
 # allCountries.zip contains allCountries.txt
 # alternateNames.zip contains iso-languagecodes.txt alternateNames.txt
 ZIPFILES="allCountries.zip alternateNames.zip"
@@ -24,14 +35,14 @@ tail -n +2 iso-languagecodes.txt > iso-languagecodes.txt.tmp
 grep -v '^#' countryInfo.txt > countryInfo.txt.tmp
 tail -n +2 timeZones.txt > timeZones.txt.tmp
  
-psql geonames <<EOT
+$PSQL_CMD <<EOT
 BEGIN;
 DROP TABLE IF EXISTS geoname;
 CREATE TABLE geoname (
 	geonameid int,
 	name varchar(200),
 	asciiname varchar(200),
-	alternatenames varchar(10000),
+	alternatenames varchar(12000),
 	latitude float,
 	longitude float,
 	fclass char(1),
@@ -48,20 +59,20 @@ CREATE TABLE geoname (
 	timezone varchar(40),
 	moddate date
 );
-copy geoname (geonameid,name,asciiname,alternatenames,latitude,longitude,fclass,fcode,country,cc2, admin1,admin2,admin3,admin4,population,elevation,gtopo30,timezone,moddate) from '$WORKPATH/allCountries.txt' null as '';
+\copy geoname (geonameid,name,asciiname,alternatenames,latitude,longitude,fclass,fcode,country,cc2, admin1,admin2,admin3,admin4,population,elevation,gtopo30,timezone,moddate) from $WORKPATH/allCountries.txt null as ''
 
 DROP TABLE IF EXISTS alternatename;
 CREATE TABLE alternatename (
 	alternatenameId int,
 	geonameid int,
 	isoLanguage varchar(7),
-	alternateName varchar(200),
+	alternateName varchar(400),
 	isPreferredName boolean,
 	isShortName boolean,
 	isColloquial boolean,
 	isHistoric boolean
 );
-copy alternatename  (alternatenameid,geonameid,isoLanguage,alternateName,isPreferredName,isShortName,isColloquial,isHistoric) from '$WORKPATH/alternateNames.txt' null as '';
+\copy alternatename  (alternatenameid,geonameid,isoLanguage,alternateName,isPreferredName,isShortName,isColloquial,isHistoric) from $WORKPATH/alternateNames.txt null as '';
 
 DROP TABLE IF EXISTS countryinfo;
 CREATE TABLE countryinfo (
@@ -85,7 +96,7 @@ CREATE TABLE countryinfo (
 	neighbours char(50), 
 	equivalentFipsCode char(10)
 );
-copy countryInfo (iso_alpha2,iso_alpha3,iso_numeric,fips_code,name,capital,areaInSqKm,population,continent,tld,currency,currencyName,Phone,postalCodeFormat,postalCodeRegex,languages,geonameId,neighbours,equivalentFipsCode) from '$WORKPATH/countryInfo.txt.tmp' null as '';
+\copy countryInfo (iso_alpha2,iso_alpha3,iso_numeric,fips_code,name,capital,areaInSqKm,population,continent,tld,currency,currencyName,Phone,postalCodeFormat,postalCodeRegex,languages,geonameId,neighbours,equivalentFipsCode) from $WORKPATH/countryInfo.txt.tmp null as ''
 
 DROP TABLE IF EXISTS iso_languagecodes;
 CREATE TABLE iso_languagecodes(
@@ -94,7 +105,7 @@ CREATE TABLE iso_languagecodes(
 	iso_639_1 VARCHAR(50),
 	language_name VARCHAR(200)
 );
-copy iso_languagecodes (iso_639_3, iso_639_2, iso_639_1, language_name) from '$WORKPATH/iso-languagecodes.txt.tmp' null as '';
+\copy iso_languagecodes (iso_639_3, iso_639_2, iso_639_1, language_name) from $WORKPATH/iso-languagecodes.txt.tmp null as ''
 
 DROP TABLE IF EXISTS admin1codes;
 CREATE TABLE admin1codes (
@@ -103,7 +114,7 @@ CREATE TABLE admin1codes (
 	nameAscii TEXT,
 	geonameid int
 );
-copy admin1codes (code,name,nameAscii,geonameid) from '$WORKPATH/admin1CodesASCII.txt' null as '';
+\copy admin1codes (code,name,nameAscii,geonameid) from $WORKPATH/admin1CodesASCII.txt null as ''
 
 DROP TABLE IF EXISTS timeZones;
 CREATE TABLE timeZones (
@@ -113,7 +124,7 @@ CREATE TABLE timeZones (
 	DST_offset numeric(3,1),
 	RAW_offset numeric(3,1)
 );
-copy timeZones (code,timeZoneId,GMT_offset,DST_offset,RAW_offset) from '$WORKPATH/timeZones.txt.tmp' null as '';
+\copy timeZones (code,timeZoneId,GMT_offset,DST_offset,RAW_offset) from $WORKPATH/timeZones.txt.tmp null as ''
 
 DROP TABLE IF EXISTS continentCodes;
 CREATE TABLE continentCodes (
@@ -133,6 +144,7 @@ CREATE INDEX geoname_id_idx ON geoname(geonameid);
 CREATE INDEX geoname_admin1codes_code_idx ON admin1codes(code);
 CREATE INDEX geoname_countryinfo_isoalpha2_idx ON countryinfo(iso_alpha2);
 CREATE INDEX geoname_alternatename_idx ON alternatename(alternatenameId);
-GRANT ALL PRIVILEGES ON geoname, admin1codes, countryInfo, alternatename TO geouser;
+GRANT ALL PRIVILEGES ON geoname, admin1codes, countryInfo, alternatename TO $PGUSER;
+GRANT SELECT ON geoname, admin1codes, countryInfo, alternatename TO public;
 COMMIT;
 EOT
