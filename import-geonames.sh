@@ -1,7 +1,7 @@
 #!/bin/bash
 # If DB is local pass no arguments else
 # ./import-geonames.sh -u user -h host -p port -d dbname
-while getopts u:h:p:d flag; do
+while getopts u:h:p:d: flag; do
     case $flag in
         u) PGUSER=$OPTARG;
            PGUSER_PARAM="--username $OPTARG";;
