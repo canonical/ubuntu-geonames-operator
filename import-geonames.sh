@@ -11,7 +11,7 @@ while getopts u:h:p:d: flag; do
     esac
 done
 PGDBNAME=${PGDBNAME:="geonames"}
-PGUSER=${PGUSER:="geonames"}
+PGUSER=${PGUSER:="geouser"}
 
 PSQL_CMD="psql $PGUSER_PARAM $PGPASS $PGHOST $PGPORT $PGDBNAME"
 WORKPATH="$(mktemp -d)"
