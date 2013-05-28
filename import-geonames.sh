@@ -10,10 +10,8 @@ while getopts u:h:p:d: flag; do
         d) PGDBNAME="--dbname $OPTARG";;
     esac
 done
-
-if [[ -z $PGDBNAME ]]; then
-    PGDBNAME="geonames"
-fi
+PGDBNAME=${PGDBNAME:="geonames"}
+PGUSER=${PGUSER:="geonames"}
 
 PSQL_CMD="psql $PGUSER_PARAM $PGPASS $PGHOST $PGPORT $PGDBNAME"
 WORKPATH="$(mktemp -d)"
