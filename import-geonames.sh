@@ -144,6 +144,10 @@ INSERT INTO continentCodes${LOAD_POSTFIX} VALUES ('NA', 'North America', 6255149
 INSERT INTO continentCodes${LOAD_POSTFIX} VALUES ('OC', 'Oceania', 6255150);
 INSERT INTO continentCodes${LOAD_POSTFIX} VALUES ('SA', 'South America', 6255151);
 INSERT INTO continentCodes${LOAD_POSTFIX} VALUES ('AN', 'Antarctica', 6255152);
+CREATE INDEX geoname_id_idx${LOAD_POSTFIX} ON geoname${LOAD_POSTFIX}(geonameid);
+CREATE INDEX geoname_admin1codes_code_idx${LOAD_POSTFIX} ON admin1codes${LOAD_POSTFIX}(code);
+CREATE INDEX geoname_countryinfo_isoalpha2_idx${LOAD_POSTFIX} ON countryinfo${LOAD_POSTFIX}(iso_alpha2);
+CREATE INDEX geoname_alternatename_idx${LOAD_POSTFIX} ON alternatename${LOAD_POSTFIX}(alternatenameId);
 COMMIT;
 EOT
 
@@ -186,10 +190,10 @@ ALTER TABLE iso_languagecodes${LOAD_POSTFIX} RENAME TO iso_languagecodes;
 ALTER TABLE admin1codes${LOAD_POSTFIX} RENAME TO admin1codes;
 ALTER TABLE timeZones${LOAD_POSTFIX} RENAME TO timeZones;
 ALTER TABLE continentCodes${LOAD_POSTFIX} RENAME TO continentCodes;
-CREATE INDEX geoname_id_idx ON geoname(geonameid);
-CREATE INDEX geoname_admin1codes_code_idx ON admin1codes(code);
-CREATE INDEX geoname_countryinfo_isoalpha2_idx ON countryinfo(iso_alpha2);
-CREATE INDEX geoname_alternatename_idx ON alternatename(alternatenameId);
+ALTER INDEX geoname_id_idx${LOAD_POSTFIX} RENAME TO geoname_id_idx;
+ALTER INDEX geoname_admin1codes_code_idx${LOAD_POSTFIX} RENAME TO geoname_admin1codes_code_idx;
+ALTER INDEX geoname_countryinfo_isoalpha2_idx${LOAD_POSTFIX} RENAME TO geoname_countryinfo_isoalpha2_idx;
+ALTER INDEX geoname_alternatename_idx${LOAD_POSTFIX} RENAME TO geoname_alternatename_idx;
 GRANT ALL PRIVILEGES ON geoname, admin1codes, countryInfo, alternatename TO $PGUSER;
 GRANT SELECT ON geoname, admin1codes, countryInfo, alternatename TO public;
 COMMIT;
