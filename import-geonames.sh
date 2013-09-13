@@ -148,6 +148,10 @@ CREATE INDEX geoname_id_idx${LOAD_POSTFIX} ON geoname${LOAD_POSTFIX}(geonameid);
 CREATE INDEX geoname_admin1codes_code_idx${LOAD_POSTFIX} ON admin1codes${LOAD_POSTFIX}(code);
 CREATE INDEX geoname_countryinfo_isoalpha2_idx${LOAD_POSTFIX} ON countryinfo${LOAD_POSTFIX}(iso_alpha2);
 CREATE INDEX geoname_alternatename_idx${LOAD_POSTFIX} ON alternatename${LOAD_POSTFIX}(alternatenameId);
+ANALYZE geoname${LOAD_POSTFIX};
+ANALYZE admin1codes${LOAD_POSTFIX};
+ANALYZE countryinfo${LOAD_POSTFIX};
+ANALYZE alternatename${LOAD_POSTFIX};
 COMMIT;
 EOT
 
