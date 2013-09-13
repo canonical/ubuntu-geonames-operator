@@ -37,11 +37,13 @@ done
 tail -n +2 iso-languagecodes.txt > iso-languagecodes.txt.tmp
 grep -v '^#' countryInfo.txt > countryInfo.txt.tmp
 tail -n +2 timeZones.txt > timeZones.txt.tmp
- 
+
+LOAD_POSTFIX="_load" 
+BACKUP_POSTFIX="_bkup" 
 $PSQL_CMD <<EOT
 BEGIN;
-DROP TABLE IF EXISTS geoname;
-CREATE TABLE geoname (
+DROP TABLE IF EXISTS geoname${LOAD_POSTFIX};
+CREATE TABLE geoname${LOAD_POSTFIX} (
 	geonameid int,
 	name varchar(200),
 	asciiname varchar(200),
@@ -62,10 +64,10 @@ CREATE TABLE geoname (
 	timezone varchar(40),
 	moddate date
 );
-\copy geoname (geonameid,name,asciiname,alternatenames,latitude,longitude,fclass,fcode,country,cc2, admin1,admin2,admin3,admin4,population,elevation,gtopo30,timezone,moddate) from $WORKPATH/allCountries.txt null as ''
+\copy geoname${LOAD_POSTFIX} (geonameid,name,asciiname,alternatenames,latitude,longitude,fclass,fcode,country,cc2, admin1,admin2,admin3,admin4,population,elevation,gtopo30,timezone,moddate) from $WORKPATH/allCountries.txt null as ''
 
-DROP TABLE IF EXISTS alternatename;
-CREATE TABLE alternatename (
+DROP TABLE IF EXISTS alternatename${LOAD_POSTFIX};
+CREATE TABLE alternatename${LOAD_POSTFIX} (
 	alternatenameId int,
 	geonameid int,
 	isoLanguage varchar(7),
@@ -75,10 +77,10 @@ CREATE TABLE alternatename (
 	isColloquial boolean,
 	isHistoric boolean
 );
-\copy alternatename  (alternatenameid,geonameid,isoLanguage,alternateName,isPreferredName,isShortName,isColloquial,isHistoric) from $WORKPATH/alternateNames.txt null as '';
+\copy alternatename${LOAD_POSTFIX}  (alternatenameid,geonameid,isoLanguage,alternateName,isPreferredName,isShortName,isColloquial,isHistoric) from $WORKPATH/alternateNames.txt null as '';
 
-DROP TABLE IF EXISTS countryinfo;
-CREATE TABLE countryinfo (
+DROP TABLE IF EXISTS countryinfo${LOAD_POSTFIX};
+CREATE TABLE countryinfo${LOAD_POSTFIX} (
 	iso_alpha2 char(2),
 	iso_alpha3 char(3),
 	iso_numeric integer,
@@ -99,50 +101,91 @@ CREATE TABLE countryinfo (
 	neighbours char(50), 
 	equivalentFipsCode char(10)
 );
-\copy countryInfo (iso_alpha2,iso_alpha3,iso_numeric,fips_code,name,capital,areaInSqKm,population,continent,tld,currency,currencyName,Phone,postalCodeFormat,postalCodeRegex,languages,geonameId,neighbours,equivalentFipsCode) from $WORKPATH/countryInfo.txt.tmp null as ''
+\copy countryInfo${LOAD_POSTFIX} (iso_alpha2,iso_alpha3,iso_numeric,fips_code,name,capital,areaInSqKm,population,continent,tld,currency,currencyName,Phone,postalCodeFormat,postalCodeRegex,languages,geonameId,neighbours,equivalentFipsCode) from $WORKPATH/countryInfo.txt.tmp null as ''
 
-DROP TABLE IF EXISTS iso_languagecodes;
-CREATE TABLE iso_languagecodes(
+DROP TABLE IF EXISTS iso_languagecodes${LOAD_POSTFIX};
+CREATE TABLE iso_languagecodes${LOAD_POSTFIX}(
 	iso_639_3 CHAR(4),
 	iso_639_2 VARCHAR(50),
 	iso_639_1 VARCHAR(50),
 	language_name VARCHAR(200)
 );
-\copy iso_languagecodes (iso_639_3, iso_639_2, iso_639_1, language_name) from $WORKPATH/iso-languagecodes.txt.tmp null as ''
+\copy iso_languagecodes${LOAD_POSTFIX} (iso_639_3, iso_639_2, iso_639_1, language_name) from $WORKPATH/iso-languagecodes.txt.tmp null as ''
 
-DROP TABLE IF EXISTS admin1codes;
-CREATE TABLE admin1codes (
+DROP TABLE IF EXISTS admin1codes${LOAD_POSTFIX};
+CREATE TABLE admin1codes${LOAD_POSTFIX} (
 	code varchar(10),
 	name TEXT,
 	nameAscii TEXT,
 	geonameid int
 );
-\copy admin1codes (code,name,nameAscii,geonameid) from $WORKPATH/admin1CodesASCII.txt null as ''
+\copy admin1codes${LOAD_POSTFIX} (code,name,nameAscii,geonameid) from $WORKPATH/admin1CodesASCII.txt null as ''
 
-DROP TABLE IF EXISTS timeZones;
-CREATE TABLE timeZones (
+DROP TABLE IF EXISTS timeZones${LOAD_POSTFIX};
+CREATE TABLE timeZones${LOAD_POSTFIX} (
 	code CHAR(2),
 	timeZoneId VARCHAR(200),
 	GMT_offset numeric(3,1),
 	DST_offset numeric(3,1),
 	RAW_offset numeric(3,1)
 );
-\copy timeZones (code,timeZoneId,GMT_offset,DST_offset,RAW_offset) from $WORKPATH/timeZones.txt.tmp null as ''
+\copy timeZones${LOAD_POSTFIX} (code,timeZoneId,GMT_offset,DST_offset,RAW_offset) from $WORKPATH/timeZones.txt.tmp null as ''
 
-DROP TABLE IF EXISTS continentCodes;
-CREATE TABLE continentCodes (
+DROP TABLE IF EXISTS continentCodes${LOAD_POSTFIX};
+CREATE TABLE continentCodes${LOAD_POSTFIX} (
 	code CHAR(2),
 	name VARCHAR(20),
 	geonameid INT
 );
-INSERT INTO continentCodes VALUES ('AF', 'Africa', 6255146);
-INSERT INTO continentCodes VALUES ('AS', 'Asia', 6255147);
-INSERT INTO continentCodes VALUES ('EU', 'Europe', 6255148);
-INSERT INTO continentCodes VALUES ('NA', 'North America', 6255149);
-INSERT INTO continentCodes VALUES ('OC', 'Oceania', 6255150);
-INSERT INTO continentCodes VALUES ('SA', 'South America', 6255151);
-INSERT INTO continentCodes VALUES ('AN', 'Antarctica', 6255152);
+INSERT INTO continentCodes${LOAD_POSTFIX} VALUES ('AF', 'Africa', 6255146);
+INSERT INTO continentCodes${LOAD_POSTFIX} VALUES ('AS', 'Asia', 6255147);
+INSERT INTO continentCodes${LOAD_POSTFIX} VALUES ('EU', 'Europe', 6255148);
+INSERT INTO continentCodes${LOAD_POSTFIX} VALUES ('NA', 'North America', 6255149);
+INSERT INTO continentCodes${LOAD_POSTFIX} VALUES ('OC', 'Oceania', 6255150);
+INSERT INTO continentCodes${LOAD_POSTFIX} VALUES ('SA', 'South America', 6255151);
+INSERT INTO continentCodes${LOAD_POSTFIX} VALUES ('AN', 'Antarctica', 6255152);
+COMMIT;
+EOT
 
+# If the live tables exist, back them up and drop the indexes
+#TABLES_PRESENT=$(psql $PGUSER_PARAM $PGPASS $PGHOST $PGPORT $PGDBNAME -A -q -t -c "select count(*) from pg_tables where tablename='geoname'")
+TABLES_PRESENT=$($PSQL_CMD -A -q -t -c "select count(*) from pg_tables where tablename='geoname'")
+if [[ $TABLES_PRESENT == 1 ]]; then
+    echo "Backing up current tables"
+    $PSQL_CMD <<EOT
+BEGIN;
+DROP TABLE IF EXISTS geoname${BACKUP_POSTFIX};
+DROP TABLE IF EXISTS alternatename${BACKUP_POSTFIX};
+DROP TABLE IF EXISTS countryinfo${BACKUP_POSTFIX};
+DROP TABLE IF EXISTS iso_languagecodes${BACKUP_POSTFIX};
+DROP TABLE IF EXISTS admin1codes${BACKUP_POSTFIX};
+DROP TABLE IF EXISTS timeZones${BACKUP_POSTFIX};
+DROP TABLE IF EXISTS continentCodes${BACKUP_POSTFIX};
+DROP INDEX IF EXISTS geoname_id_idx;
+DROP INDEX IF EXISTS geoname_admin1codes_code_idx;
+DROP INDEX IF EXISTS geoname_countryinfo_isoalpha2_idx;
+DROP INDEX IF EXISTS geoname_alternatename_idx;
+ALTER TABLE geoname RENAME TO geoname${BACKUP_POSTFIX};
+ALTER TABLE alternatename RENAME TO alternatename${BACKUP_POSTFIX};
+ALTER TABLE countryinfo RENAME TO countryinfo${BACKUP_POSTFIX};
+ALTER TABLE iso_languagecodes RENAME TO iso_languagecodes${BACKUP_POSTFIX};
+ALTER TABLE admin1codes RENAME TO admin1codes${BACKUP_POSTFIX};
+ALTER TABLE timeZones RENAME TO timeZones${BACKUP_POSTFIX};
+ALTER TABLE continentCodes RENAME TO continentCodes${BACKUP_POSTFIX};
+COMMIT;
+EOT
+fi
+
+# Put the load tables live and rebuild the indexes
+$PSQL_CMD <<EOT
+BEGIN;
+ALTER TABLE geoname${LOAD_POSTFIX} RENAME TO geoname;
+ALTER TABLE alternatename${LOAD_POSTFIX} RENAME TO alternatename;
+ALTER TABLE countryinfo${LOAD_POSTFIX} RENAME TO countryinfo;
+ALTER TABLE iso_languagecodes${LOAD_POSTFIX} RENAME TO iso_languagecodes;
+ALTER TABLE admin1codes${LOAD_POSTFIX} RENAME TO admin1codes;
+ALTER TABLE timeZones${LOAD_POSTFIX} RENAME TO timeZones;
+ALTER TABLE continentCodes${LOAD_POSTFIX} RENAME TO continentCodes;
 CREATE INDEX geoname_id_idx ON geoname(geonameid);
 CREATE INDEX geoname_admin1codes_code_idx ON admin1codes(code);
 CREATE INDEX geoname_countryinfo_isoalpha2_idx ON countryinfo(iso_alpha2);
