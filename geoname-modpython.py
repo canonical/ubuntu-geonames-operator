@@ -14,6 +14,7 @@ admin1codes.name,
 countryInfo.name,
 geoname.longitude,
 geoname.latitude,
+geoname.timezone,
 geoname.population
 FROM geoname
 left join countryInfo on (geoname.country = countryInfo.iso_alpha2)
@@ -26,6 +27,7 @@ admin1codes.name,
 countryInfo.name,
 geoname.longitude,
 geoname.latitude,
+geoname.timezone,
 geoname.population
 FROM
 alternatename
@@ -38,7 +40,7 @@ ORDER by population desc;
 jsonheader = '['
 jsonfooter = ']'
 jsonentry = '{"name" : "%s", "admin1" : "%s", "country" : "%s", ' \
-            '"longitude" : "%F", "latitude" : "%F" }'
+            '"longitude" : "%F", "latitude" : "%F", "timezoneid" : "%s" }'
 
 
 def handler(req):
