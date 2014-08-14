@@ -11,6 +11,7 @@ statement = """
 SELECT
 geoname.name,
 admin1codes.name,
+admin2codes.name,
 countryInfo.name,
 geoname.longitude,
 geoname.latitude,
@@ -19,11 +20,13 @@ geoname.population
 FROM geoname
 left join countryInfo on (geoname.country = countryInfo.iso_alpha2)
 left join admin1codes on (admin1codes.code = geoname.country||'.'||geoname.admin1)
+left join admin2codes on (admin2codes.code = geoname.country||'.'||geoname.admin1||'.'||geoname.admin2)
 WHERE geoname.geonameid in %s
 UNION
 SELECT
 alternatename.alternatename,
 admin1codes.name,
+admin2codes.name,
 countryInfo.name,
 geoname.longitude,
 geoname.latitude,
@@ -34,14 +37,14 @@ alternatename
 left join geoname on (geoname.geonameid=alternatename.geonameid)
 left join countryInfo on (geoname.country = countryInfo.iso_alpha2)
 left join admin1codes on (admin1codes.code = geoname.country||'.'||geoname.admin1)
+left join admin2codes on (admin2codes.code = geoname.country||'.'||geoname.admin1||'.'||geoname.admin2)
 where alternatename.alternatenameId in %s
 ORDER by population desc;
 """
 jsonheader = '['
 jsonfooter = ']'
-jsonentry = '{"name" : "%s", "admin1" : "%s", "country" : "%s", ' \
-            '"longitude" : "%F", "latitude" : "%F", "timezoneid" : "%s" }'
-
+jsonentry = '{"name" : "%s", "admin1" : "%s", "admin2" : "%s", "country" : "%s", ' \
+            '"longitude" : "%F", "latitude" : "%F" , '"timezone" : "%s" }'
 
 def handler(req):
     fs = util.FieldStorage(req)
