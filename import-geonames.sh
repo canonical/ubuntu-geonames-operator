@@ -53,7 +53,7 @@ CREATE TABLE geoname${LOAD_POSTFIX} (
 	fclass char(1),
 	fcode varchar(10),
 	country varchar(2),
-	cc2 text,
+	cc2 varchar(200),
 	admin1 varchar(20),
 	admin2 varchar(80),
 	admin3 varchar(20),
@@ -93,12 +93,12 @@ CREATE TABLE countryinfo${LOAD_POSTFIX} (
 	tld char(3),
 	currency char(3),
 	currencyName character varying(20),
-	Phone char(20), 
-	postalCodeFormat char(60), 
-	postalCodeRegex char(200), 
-	languages character varying(200), 
+	Phone char(20),
+	postalCodeFormat char(60),
+	postalCodeRegex char(200),
+	languages character varying(200),
 	geonameId int,
-	neighbours char(50), 
+	neighbours char(50),
 	equivalentFipsCode char(10)
 );
 \copy countryInfo${LOAD_POSTFIX} (iso_alpha2,iso_alpha3,iso_numeric,fips_code,name,capital,areaInSqKm,population,continent,tld,currency,currencyName,Phone,postalCodeFormat,postalCodeRegex,languages,geonameId,neighbours,equivalentFipsCode) from $WORKPATH/countryInfo.txt.tmp null as ''
@@ -114,7 +114,7 @@ CREATE TABLE iso_languagecodes${LOAD_POSTFIX}(
 
 DROP TABLE IF EXISTS admin1codes${LOAD_POSTFIX};
 CREATE TABLE admin1codes${LOAD_POSTFIX} (
-	code varchar(10),
+	code varchar(20),
 	name TEXT,
 	nameAscii TEXT,
 	geonameid int
