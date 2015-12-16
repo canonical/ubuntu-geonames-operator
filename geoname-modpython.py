@@ -44,7 +44,7 @@ ORDER by population desc;
 jsonheader = '['
 jsonfooter = ']'
 jsonentry = '{"name" : "%s", "admin1" : "%s", "admin2" : "%s", "country" : "%s", ' \
-            '"longitude" : "%F", "latitude" : "%F" , '"timezone" : "%s" }'
+            '"longitude" : "%F", "latitude" : "%F" , "timezone" : "%s" }'
 
 def handler(req):
     fs = util.FieldStorage(req)
