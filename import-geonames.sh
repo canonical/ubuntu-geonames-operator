@@ -214,7 +214,7 @@ ALTER INDEX geoname_admin1codes_code_idx${LOAD_POSTFIX} RENAME TO geoname_admin1
 ALTER INDEX geoname_admin2codes_code_idx${LOAD_POSTFIX} RENAME TO geoname_admin2codes_code_idx;
 ALTER INDEX geoname_countryinfo_isoalpha2_idx${LOAD_POSTFIX} RENAME TO geoname_countryinfo_isoalpha2_idx;
 ALTER INDEX geoname_alternatename_idx${LOAD_POSTFIX} RENAME TO geoname_alternatename_idx;
-GRANT ALL PRIVILEGES ON geoname, admin1codes, countryInfo, alternatename TO $PGUSER;
+GRANT ALL PRIVILEGES ON geoname, admin1codes, countryInfo, alternatename TO "$PGUSER";
 GRANT SELECT ON geoname, admin1codes, admin2codes, countryInfo, alternatename TO public;
 COMMIT;
 EOT
