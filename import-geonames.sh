@@ -26,7 +26,7 @@ ZIPFILES="allCountries.zip alternateNames.zip"
 TXTFILES="admin1CodesASCII.txt admin2Codes.txt countryInfo.txt timeZones.txt"
 for i in $ZIPFILES $TXTFILES
 do
-	wget "http://download.geonames.org/export/dump/$i"
+	wget "https://download.geonames.org/export/dump/$i"
 done
 for i in $ZIPFILES
 do
