@@ -13,6 +13,7 @@ geoname.name,
 admin1codes.name,
 admin2codes.name,
 countryInfo.name,
+countryInfo.continent,
 geoname.longitude,
 geoname.latitude,
 geoname.timezone,
@@ -28,6 +29,7 @@ alternatename.alternatename,
 admin1codes.name,
 admin2codes.name,
 countryInfo.name,
+countryInfo.continent,
 geoname.longitude,
 geoname.latitude,
 geoname.timezone,
@@ -43,7 +45,7 @@ ORDER by population desc;
 """
 jsonheader = '['
 jsonfooter = ']'
-jsonentry = '{"name" : "%s", "admin1" : "%s", "admin2" : "%s", "country" : "%s", ' \
+jsonentry = '{"name" : "%s", "admin1" : "%s", "admin2" : "%s", "country" : "%s", "continent" : "%s", ' \
             '"longitude" : "%F", "latitude" : "%F" , "timezone" : "%s" }'
 
 def handler(req):
