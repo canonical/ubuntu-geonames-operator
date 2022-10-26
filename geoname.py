@@ -1,7 +1,7 @@
 import sphinxapi
 import cherrypy
 import psycopg2
-statement = "SELECT geoname.name, admin1codes.name, countryInfo.name, \
+statement = "SELECT geoname.name, admin1codes.name, countryInfo.name, countryInfo.continent, \
 geoname.longitude, geoname.latitude FROM admin1codes, geoname, countryInfo \
 WHERE code = geoname.country||'.'||geoname.admin1 AND \
 countryInfo.iso_alpha2=geoname.country AND geoname.geonameid=%s;"
@@ -14,7 +14,7 @@ testfooter = ''
 testentry = '%s (%s, %s) <font size="-2">[%F, %F]</font><br />'
 jsonheader = '['
 jsonfooter = ']'
-jsonentry = '{"name" : "%s", "admin1" : "%s", "country" : "%s", "longitude" : "%F", "latitude" : "%F" }'
+jsonentry = '{"name" : "%s", "admin1" : "%s", "country" : "%s", "continent" : "%s", "longitude" : "%F", "latitude" : "%F" }'
 
 class Geoname:
     def index(self, query=""):
