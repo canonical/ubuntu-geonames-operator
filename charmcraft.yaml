@@ -1,0 +1,67 @@
+# This file configures Charmcraft.
+# See https://juju.is/docs/sdk/charmcraft-config for guidance.
+
+# (Required)
+# The charm package name, no spaces
+# See https://juju.is/docs/sdk/naming#heading--naming-charms for guidance.
+name: ubuntu-geonames
+
+# (Required)
+# The charm type, either 'charm' or 'bundle'.
+type: charm
+
+# (Recommended)
+title: Ubuntu Geonames
+
+# (Required)
+summary: geoname-lookup.ubuntu.com
+
+# (Required)
+description: |
+  Service wherein you can query for timezones and geodata.
+
+# (Required for 'charm' type)
+# A list of environments (OS version and architecture) where charms must be
+# built on and run on.
+base: ubuntu@22.04
+
+platforms:
+  amd64:
+    build-on: amd64
+    build-for: amd64
+
+subordinate: true
+
+requires:
+  website:
+    interface: apache-website
+    scope: container
+
+parts:
+  ubuntu-geonames:
+    plugin: charm
+    source: .
+    charm-entrypoint: src/charm.py
+    build-packages: [libffi-dev, libgit2-dev]
+    charm-binary-python-packages: [pygit2]
+
+# (Optional) Configuration options for the charm
+# This config section defines charm config options, and populates the Configure
+# tab on Charmhub.
+# More information on this section at https://juju.is/docs/sdk/charmcraft-yaml#heading--config
+# General configuration documentation: https://juju.is/docs/sdk/config
+config:
+  options:
+    # An example config option to customise the log level of the workload
+    log-level:
+      description: |
+        Configures the log level of gunicorn.
+
+        Acceptable values are: "info", "debug", "warning", "error" and "critical"
+      default: "debug"
+      type: string
+    binary-packages:
+      description: |
+        Required binary packages for ubuntu-geonames. (space separated list)
+      type: string
+      default: "libapache2-mod-wsgi-py3 unzip git postgresql sphinxsearch python3-psycopg2 python3-flask python3-pymysql"

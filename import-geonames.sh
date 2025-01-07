@@ -6,19 +6,31 @@ while getopts u:h:p:d: flag; do
         u) PGUSER=$OPTARG;
            PGUSER_PARAM="--username $OPTARG";;
         h) PGHOST="--host $OPTARG";;
-        p) PGPORT="--port $OPTARG";;
+        # p) PGPORT="--port $OPTARG";;
         d) PGDBNAME="--dbname $OPTARG";;
+		*) exit 1;;
     esac
 done
-PGDBNAME=${PGDBNAME:="geonames"}
-PGUSER=${PGUSER:="geouser"}
 
-PSQL_CMD="psql $PGUSER_PARAM $PGPASS $PGHOST $PGPORT $PGDBNAME"
+set -eux
+
+PGDBNAME=${PGDBNAME:="--dbname geonames"}
+PGUSER=${PGUSER:="geouser"}
+PGUSER_PARAM=${PGUSER_PARAM:="--username ${PGUSER}"}
+PGPASS=${PGPASS:="geopw"}
+PGHOST=${PGHOST:="--host 127.0.0.1"}
+
+export PGPASSWORD="${PGPASS}"
+
+PSQL_CMD="psql ${PGHOST} ${PGDBNAME} ${PGUSER_PARAM}"
+# this is what was here before!
+# PSQL_CMD="psql $PGUSER_PARAM $PGPASS $PGHOST $PGPORT $PGDBNAME"
+echo "PSQL_CMD: ${PSQL_CMD}"
 WORKPATH="$(mktemp -d)"
 
-chmod 755 $WORKPATH
-cd $WORKPATH
-trap "rm -rf $WORKPATH" EXIT HUP INT QUIT TERM
+chmod 755 "${WORKPATH}"
+cd "${WORKPATH}"
+trap 'rm -rf ${WORKPATH}' EXIT HUP INT QUIT TERM
 pwd
 # allCountries.zip contains allCountries.txt
 # alternateNames.zip contains iso-languagecodes.txt alternateNames.txt
@@ -30,7 +42,7 @@ do
 done
 for i in $ZIPFILES
 do
-	unzip -o -qq $i
+	unzip -o -qq "${i}"
 done
 
 # alter files for import
@@ -218,3 +230,5 @@ GRANT ALL PRIVILEGES ON geoname, admin1codes, countryInfo, alternatename TO "$PG
 GRANT SELECT ON geoname, admin1codes, admin2codes, countryInfo, alternatename TO public;
 COMMIT;
 EOT
+
+unset PGPASSWORD
