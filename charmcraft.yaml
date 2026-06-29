@@ -55,8 +55,4 @@ config:
         Acceptable values are: "info", "debug", "warning", "error" and "critical"
       default: "debug"
       type: string
-    binary-packages:
-      description: |
-        Required binary packages for ubuntu-geonames. (space separated list)
-      type: string
-      default: "apache2 libapache2-mod-wsgi-py3 unzip git postgresql sphinxsearch python3-psycopg2 python3-flask python3-pymysql"
+

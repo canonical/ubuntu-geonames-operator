@@ -30,9 +30,9 @@ logger = logging.getLogger(__name__)
 VALID_LOG_LEVELS = ["info", "debug", "warning", "error", "critical"]
 
 # change to path perhaps
-REPO_REMOTE = "https://git.launchpad.net/~andersson123/ubuntu-geonames"
+REPO_REMOTE = "https://git.launchpad.net/ubuntu-geonames"
 REPO_LOCATION = Path("/home/ubuntu/ubuntu-geonames/")
-REPO_BRANCH = "charm-and-modernise"
+REPO_BRANCH = "master"
 
 
 class UnixUser:
@@ -72,13 +72,17 @@ class UbuntuGeonamesCharm(ops.CharmBase):
         - runs import-geonames.sh
         - sphinxsearch - installed by installs binary packages
             - replace /etc/sphinxsearch/sphinx.conf with sphinx.conf from repo
-            - sudo indexer geonames
+            - indexer geonames
             - enables sphinxsearch
             - restarts the systemd unit
         - sets up systemd unit for geoname flask app to be run by apache
         - restarts apache
         """
-        binaries = cast(list, self.model.config["binary-packages"].split(" "))  # pyright: ignore
+        binaries = [
+            "apache2", "libapache2-mod-wsgi-py3", "unzip", "git", 
+            "postgresql", "sphinxsearch", "python3-psycopg2", 
+            "python3-flask", "python3-pymysql"
+        ]
         logger.info(f"installing binaries '{binaries}'")
         self._install_binaries(binaries)
         logger.info("Cloning repo...")
@@ -97,16 +101,18 @@ class UbuntuGeonamesCharm(ops.CharmBase):
         logger.info("Enabling sphinxsearch...")
         self._enable_sphinxsearch()
         logger.info("Starting sphinxsearch...")
-        self._run_subprocess_command("sudo systemctl restart sphinxsearch.service")
+        self._run_subprocess_command("systemctl restart sphinxsearch.service")
         logger.info("Writing apache config for geoname app...")
         self._write_apache_config()
         logger.info("Hacky, setting ~ permissions so apache can search under ~")
-        self._run_subprocess_command("sudo setfacl -m u:www-data:rw /home/ubuntu/")
+        self._run_subprocess_command("chmod a+rx /home/ubuntu/")
         logger.info("Restarting apache...")
-        self._run_subprocess_command("sudo systemctl restart apache2.service")
+        self._run_subprocess_command("systemctl restart apache2.service")
         self.unit.status = ops.ActiveStatus("Done!")
 
     def _write_apache_config(self):
+        self._run_subprocess_command("a2enmod wsgi")
+        self._run_subprocess_command("rm -f /etc/apache2/sites-enabled/000-default.conf")
         conf_file_name = "geonames-apache2.conf"
         cfg_dir = Path("/etc/apache2")
         sites_enabled_dir = cfg_dir / "sites-enabled"
@@ -120,7 +126,7 @@ class UbuntuGeonamesCharm(ops.CharmBase):
         sphinxsearch_default.write_text(sphinxsearch_enable)
 
     def _geonames_indexes(self):
-        idx_command = "sudo indexer geonames"
+        idx_command = "indexer geonames"
         self._run_subprocess_command(idx_command)
 
     def _setup_sphinx_conf(self):
@@ -156,12 +162,12 @@ class UbuntuGeonamesCharm(ops.CharmBase):
             return False
 
     def _install_binaries(self, binaries: list[str]):
-        self._run_subprocess_command(f"sudo apt install -y {' '.join(binaries)}")
+        self._run_subprocess_command(f"apt install -y {' '.join(binaries)}")
 
     def _wait_for_postgres_to_be_ready(self, timeout: int = 120):
         start_time = time.time()
         while (time.time() - start_time) < timeout:
-            if self._run_subprocess_command("sudo pg_isready"):
+            if self._run_subprocess_command("pg_isready"):
                 return True
         logger.info(f"Postgres service not loading in '{timeout}' seconds")
         return False
@@ -186,9 +192,11 @@ class UbuntuGeonamesCharm(ops.CharmBase):
         for cmd in postgres_cmds:
             self._run_psql_command(cmd)
 
+        self._run_command_as_postgres_user("psql -d geonames -c \"GRANT ALL ON SCHEMA public TO geouser;\"")
+
     def _run_import_geonames(self):
-        full_path = REPO_LOCATION / "import-geonames.sh"
-        self._run_subprocess_command(str(full_path))
+        full_path = Path(__file__).parent.parent / "import-geonames.sh"
+        self._run_subprocess_command(f"bash {full_path}")
 
 
 if __name__ == "__main__":  # pragma: nocover
