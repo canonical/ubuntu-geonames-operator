@@ -33,17 +33,18 @@ cd "${WORKPATH}"
 trap 'rm -rf ${WORKPATH}' EXIT HUP INT QUIT TERM
 pwd
 # allCountries.zip contains allCountries.txt
-# alternateNames.zip contains iso-languagecodes.txt alternateNames.txt
-ZIPFILES="allCountries.zip alternateNames.zip"
+# alternateNamesV2.zip contains iso-languagecodes.txt alternateNamesV2.txt
+ZIPFILES=${ZIPFILES:-"allCountries.zip alternateNamesV2.zip"}
 TXTFILES="admin1CodesASCII.txt admin2Codes.txt countryInfo.txt timeZones.txt"
 for i in $ZIPFILES $TXTFILES
 do
-	wget "https://download.geonames.org/export/dump/$i"
+	wget -c --timeout=30 --tries=5 "https://download.geonames.org/export/dump/$i"
 done
 for i in $ZIPFILES
 do
 	unzip -o -qq "${i}"
 done
+
 
 # alter files for import
 tail -n +2 iso-languagecodes.txt > iso-languagecodes.txt.tmp
@@ -87,9 +88,11 @@ CREATE TABLE alternatename${LOAD_POSTFIX} (
 	isPreferredName boolean,
 	isShortName boolean,
 	isColloquial boolean,
-	isHistoric boolean
+	isHistoric boolean,
+	fromPeriod varchar(255),
+	toPeriod varchar(255)
 );
-\copy alternatename${LOAD_POSTFIX}  (alternatenameid,geonameid,isoLanguage,alternateName,isPreferredName,isShortName,isColloquial,isHistoric) from $WORKPATH/alternateNames.txt null as '';
+\copy alternatename${LOAD_POSTFIX}  (alternatenameid,geonameid,isoLanguage,alternateName,isPreferredName,isShortName,isColloquial,isHistoric,fromPeriod,toPeriod) from $WORKPATH/alternateNamesV2.txt null as '';
 
 DROP TABLE IF EXISTS countryinfo${LOAD_POSTFIX};
 CREATE TABLE countryinfo${LOAD_POSTFIX} (
