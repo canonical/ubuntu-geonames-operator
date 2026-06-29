@@ -22,6 +22,7 @@ from pathlib import Path
 from typing import cast
 
 import ops
+from charms.operator_libs_linux.v0 import apt
 import pygit2
 
 # Log messages can be retrieved using juju debug-log
@@ -162,7 +163,14 @@ class UbuntuGeonamesCharm(ops.CharmBase):
             return False
 
     def _install_binaries(self, binaries: list[str]):
-        self._run_subprocess_command(f"apt install -y {' '.join(binaries)}")
+        try:
+            apt.add_package(binaries, update_cache=True)
+        except apt.PackageNotFoundError:
+            logger.error(f"a specified package not found in package cache or on system")
+            raise
+        except apt.PackageError as e:
+            logger.error(f"could not install package. Reason: {e.message}")
+            raise
 
     def _wait_for_postgres_to_be_ready(self, timeout: int = 120):
         start_time = time.time()
