@@ -5,7 +5,7 @@ More information: https://charmhub.io/ubuntu-geonames
 
 geoname lookup for legacy ubuntu desktop installer.
 
-[Source code here](https://launchpad.net/ubuntu-geonames).
+[Source code here](https://github.com/canonical/ubuntu-geonames-operator).
 
 ## Other resources
 
