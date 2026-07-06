@@ -33,7 +33,7 @@ VALID_LOG_LEVELS = ["info", "debug", "warning", "error", "critical"]
 # change to path perhaps
 REPO_REMOTE = "https://git.launchpad.net/ubuntu-geonames"
 REPO_LOCATION = Path("/home/ubuntu/ubuntu-geonames/")
-REPO_BRANCH = "master"
+REPO_BRANCH = "main"
 
 
 class UnixUser:
