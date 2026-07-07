@@ -45,6 +45,7 @@ class UbuntuGeonamesCharm(ops.CharmBase):
             OSError,
             shutil.Error,
         ):
+            logger.exception("Failed to install geonames")
             self.unit.status = ops.BlockedStatus(
                 "Failed to set up the environment. Check `juju debug-log` for details."
             )

@@ -12,7 +12,6 @@ import subprocess
 import time
 from pathlib import Path
 
-import pygit2
 from charmlibs import apt
 from charmlibs.apt import PackageError, PackageNotFoundError
 
@@ -31,9 +30,7 @@ PACKAGES = [
     "python3-pymysql",
 ]
 
-REPO_REMOTE = "https://github.com/canonical/ubuntu-geonames-operator"
 REPO_LOCATION = Path("/home/ubuntu/ubuntu-geonames/")
-REPO_BRANCH = "main"
 
 POSTGRES_READY_TIMEOUT = 120
 
@@ -93,18 +90,17 @@ class Geonames:
                 logger.error("Failed to install %s: %s", p, e)
                 raise
 
-    def _clone_repo(self):
-        """Clone the geonames repository as the ubuntu user."""
-        with UnixUser("ubuntu"):
-            try:
-                pygit2.clone_repository(
-                    REPO_REMOTE,
-                    str(REPO_LOCATION),
-                    checkout_branch=REPO_BRANCH,
-                )
-            except ValueError:
-                # already cloned
-                pass
+    def _copy_files(self):
+        """Copy the geonames application files to the target location."""
+        os.makedirs(REPO_LOCATION, exist_ok=True)
+        charm_dir = Path(__file__).parent
+        files_to_copy = [
+            "geoname.py",
+            "geoname.wsgi",
+        ]
+        for f in files_to_copy:
+            shutil.copy(charm_dir / f, REPO_LOCATION / f)
+        self._run_subprocess_command(f"chown -R ubuntu:ubuntu {REPO_LOCATION}")
 
     def _wait_for_postgres(self, timeout: int = POSTGRES_READY_TIMEOUT):
         """Block until PostgreSQL is accepting connections."""
@@ -138,7 +134,7 @@ class Geonames:
 
     def _run_import(self):
         """Run import-geonames.sh, which downloads and populates the database."""
-        import_script = Path(__file__).parent.parent / "import-geonames.sh"
+        import_script = Path(__file__).parent / "import-geonames.sh"
         self._run_subprocess_command(f"bash {import_script}")
 
     def _setup_sphinx_conf(self):
@@ -148,7 +144,8 @@ class Geonames:
         for cfg_file in sphinx_conf_dir.glob("**/*"):
             if cfg_file.is_file() and "conf" in cfg_file.name:
                 cfg_file.rename(cfg_file.with_suffix(".bkp"))
-        shutil.copy(REPO_LOCATION / conf_file_name, sphinx_conf_dir / conf_file_name)
+        charm_dir = Path(__file__).parent
+        shutil.copy(charm_dir / conf_file_name, sphinx_conf_dir / conf_file_name)
 
     def _build_indexes(self):
         self._run_subprocess_command("indexer geonames")
@@ -162,7 +159,8 @@ class Geonames:
         self._run_subprocess_command("rm -f /etc/apache2/sites-enabled/000-default.conf")
         conf_file_name = "geonames-apache2.conf"
         sites_enabled_dir = Path("/etc/apache2/sites-enabled")
-        shutil.copy(REPO_LOCATION / conf_file_name, sites_enabled_dir / conf_file_name)
+        charm_dir = Path(__file__).parent
+        shutil.copy(charm_dir / conf_file_name, sites_enabled_dir / conf_file_name)
 
     def install(self):
         """Install and configure the geonames environment.
@@ -173,8 +171,8 @@ class Geonames:
         """
         logger.info("Installing packages %s", PACKAGES)
         self._install_packages()
-        logger.info("Cloning repo...")
-        self._clone_repo()
+        logger.info("Copying application files...")
+        self._copy_files()
         logger.info("Waiting for postgres service to be ready...")
         self._wait_for_postgres()
         logger.info("Setting up postgres credentials...")
