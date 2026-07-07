@@ -43,8 +43,8 @@ lint.extend-ignore = [
     "D409",
     "D413",
 ]
-extend-exclude = ["__pycache__", "*.egg_info"]
 lint.per-file-ignores = {"tests/*" = ["D100","D101","D102","D103","D104"]}
+extend-exclude = ["__pycache__", "*.egg_info"]
 
 [tool.ruff.lint.mccabe]
 max-complexity = 10
@@ -54,3 +54,9 @@ skip = "build,lib,venv,icon.svg,.tox,.git,.mypy_cache,.ruff_cache,.coverage"
 
 [tool.pyright]
 include = ["src/**.py"]
+
+[dependency-groups]
+dev = [
+    "jubilant>=1.11.0",
+    "requests>=2.34.2",
+]

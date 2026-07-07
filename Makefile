@@ -33,13 +33,16 @@ unit:
 		$(ARGS)
 	uv run --all-extras coverage report
 
-integration:
+.PHONY: integration
+integration: ## Run integration tests
 	charmcraft.spread -v
 
-integration-debug:
+.PHONY: integration-debug
+integration-debug: ## Run integration tests and pause on failure
 	charmcraft.spread -v -debug
 
-integration-execution:
+.PHONY: integration-execution
+integration-execution: ## Run integration tests directly
 	uv run --all-extras \
 		-m pytest \
 		--tb native \
