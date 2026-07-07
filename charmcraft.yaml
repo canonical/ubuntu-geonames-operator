@@ -45,6 +45,16 @@ parts:
 # tab on Charmhub.
 # More information on this section at https://juju.is/docs/sdk/charmcraft-yaml#heading--config
 # General configuration documentation: https://juju.is/docs/sdk/config
+charm-libs:
+  - lib: traefik_k8s.ingress
+    version: "2"
+
+requires:
+  ingress:
+    interface: ingress
+    limit: 1
+    optional: true
+
 config:
   options:
     # An example config option to customise the log level

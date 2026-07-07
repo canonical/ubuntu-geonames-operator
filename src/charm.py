@@ -12,6 +12,7 @@ from subprocess import CalledProcessError
 
 import ops
 from charmlibs.apt import PackageError, PackageNotFoundError
+from charms.traefik_k8s.v2.ingress import IngressPerAppRequirer as IngressRequirer
 
 from geonames import Geonames
 
@@ -23,6 +24,8 @@ class UbuntuGeonamesCharm(ops.CharmBase):
 
     def __init__(self, framework: ops.Framework):
         super().__init__(framework)
+        self.ingress = IngressRequirer(self, port=80, strip_prefix=True, relation_name="ingress")
+
         self.framework.observe(self.on.install, self._on_install)
         self.framework.observe(self.on.upgrade_charm, self._on_install)
 
@@ -46,6 +49,7 @@ class UbuntuGeonamesCharm(ops.CharmBase):
                 "Failed to set up the environment. Check `juju debug-log` for details."
             )
             return
+        self.unit.set_ports(80)
         self.unit.status = ops.ActiveStatus("Done!")
 
 
