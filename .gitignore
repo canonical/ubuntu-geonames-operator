@@ -9,3 +9,6 @@ __pycache__/
 .vscode/
 .terraform*
 terraform.tfstate*
+.venv/
+.pytest_cache/
+.ruff_cache/
