@@ -55,10 +55,7 @@ left join admin2codes on (admin2codes.code = geoname.country||'.'||geoname.admin
 where alternatename.alternatenameId in %s
 ORDER by population desc, priority asc, name_len asc;
 """
-jsonheader = '['
-jsonfooter = ']'
-jsonentry = '{"name" : "%s", "admin1" : "%s", "admin2" : "%s", "country" : "%s", "continent" : "%s", ' \
-            '"longitude" : "%F", "latitude" : "%F" , "timezone" : "%s" }'
+
 
 
 def handle_query(query):
@@ -93,8 +90,19 @@ def handle_query(query):
             records = cursor.fetchall()
             for record in records:
                 record = tuple([f or '' for f in record])
+                r = record[:8]
                 # Do not expose population, priority, and name_len columns
-                ret.append(jsonentry % record[:8])
+                entry = {
+                    "name": r[0],
+                    "admin1": r[1],
+                    "admin2": r[2],
+                    "country": r[3],
+                    "continent": r[4],
+                    "longitude": "%F" % float(r[5]) if r[5] else "0.000000",
+                    "latitude": "%F" % float(r[6]) if r[6] else "0.000000",
+                    "timezone": r[7]
+                }
+                ret.append(entry)
         finally:
             cursor.close()
             connection.close()
