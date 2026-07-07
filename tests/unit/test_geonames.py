@@ -57,24 +57,16 @@ def test_install_packages_raises_when_package_error(mock_apt, geonames_instance)
         geonames_instance._install_packages()
 
 
-@patch("geonames.pygit2")
-@patch("geonames.UnixUser")
-def test_clone_repo_clones_as_ubuntu_user(mock_unix_user, mock_pygit2, geonames_instance):
-    geonames_instance._clone_repo()
+@patch("geonames.shutil")
+@patch("geonames.os")
+def test_copy_files_copies_to_target_location(mock_os, mock_shutil, geonames_instance):
+    geonames_instance._run_subprocess_command = MagicMock(return_value=True)
+    
+    geonames_instance._copy_files()
 
-    mock_unix_user.assert_called_once_with("ubuntu")
-    mock_pygit2.clone_repository.assert_called_once_with(
-        geonames.REPO_REMOTE,
-        str(geonames.REPO_LOCATION),
-        checkout_branch=geonames.REPO_BRANCH,
-    )
-
-
-@patch("geonames.pygit2")
-@patch("geonames.UnixUser")
-def test_clone_repo_ignores_already_cloned(mock_unix_user, mock_pygit2, geonames_instance):
-    mock_pygit2.clone_repository.side_effect = ValueError("exists")
-    geonames_instance._clone_repo()
+    mock_os.makedirs.assert_called_once_with(geonames.REPO_LOCATION, exist_ok=True)
+    assert mock_shutil.copy.call_count == 2
+    geonames_instance._run_subprocess_command.assert_called_once_with(f"chown -R ubuntu:ubuntu {geonames.REPO_LOCATION}")
 
 
 def test_wait_for_postgres_returns_when_ready(geonames_instance):
@@ -154,7 +146,7 @@ def test_write_apache_config_enables_wsgi_and_installs_site(mock_shutil, geoname
 
 def test_install_orchestrates_all_setup_steps(geonames_instance):
     geonames_instance._install_packages = MagicMock()
-    geonames_instance._clone_repo = MagicMock()
+    geonames_instance._copy_files = MagicMock()
     geonames_instance._wait_for_postgres = MagicMock()
     geonames_instance._setup_postgres = MagicMock()
     geonames_instance._run_import = MagicMock()
@@ -167,7 +159,7 @@ def test_install_orchestrates_all_setup_steps(geonames_instance):
     geonames_instance.install()
 
     geonames_instance._install_packages.assert_called_once()
-    geonames_instance._clone_repo.assert_called_once()
+    geonames_instance._copy_files.assert_called_once()
     geonames_instance._wait_for_postgres.assert_called_once()
     geonames_instance._setup_postgres.assert_called_once()
     geonames_instance._run_import.assert_called_once()
