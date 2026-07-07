@@ -25,7 +25,9 @@ countryInfo.continent,
 geoname.longitude,
 geoname.latitude,
 geoname.timezone,
-geoname.population
+geoname.population,
+1 as priority,
+LENGTH(geoname.name) as name_len
 FROM geoname
 left join countryInfo on (geoname.country = countryInfo.iso_alpha2)
 left join admin1codes on (admin1codes.code = geoname.country||'.'||geoname.admin1)
@@ -41,7 +43,9 @@ countryInfo.continent,
 geoname.longitude,
 geoname.latitude,
 geoname.timezone,
-geoname.population
+geoname.population,
+2 as priority,
+LENGTH(alternatename.alternatename) as name_len
 FROM
 alternatename
 left join geoname on (geoname.geonameid=alternatename.geonameid)
@@ -49,7 +53,7 @@ left join countryInfo on (geoname.country = countryInfo.iso_alpha2)
 left join admin1codes on (admin1codes.code = geoname.country||'.'||geoname.admin1)
 left join admin2codes on (admin2codes.code = geoname.country||'.'||geoname.admin1||'.'||geoname.admin2)
 where alternatename.alternatenameId in %s
-ORDER by population desc;
+ORDER by population desc, priority asc, name_len asc;
 """
 jsonheader = '['
 jsonfooter = ']'
@@ -89,8 +93,8 @@ def handle_query(query):
             records = cursor.fetchall()
             for record in records:
                 record = tuple([f or '' for f in record])
-                # Do not expose population column
-                ret.append(jsonentry % record[:-1])
+                # Do not expose population, priority, and name_len columns
+                ret.append(jsonentry % record[:8])
         finally:
             cursor.close()
             connection.close()
