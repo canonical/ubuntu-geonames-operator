@@ -1,50 +1,33 @@
-# This file configures Charmcraft.
-# See https://juju.is/docs/sdk/charmcraft-config for guidance.
-
-# (Required)
-# The charm package name, no spaces
-# See https://juju.is/docs/sdk/naming#heading--naming-charms for guidance.
 name: ubuntu-geonames
-
-# (Required)
-# The charm type, either 'charm' or 'bundle'.
 type: charm
-
-# (Recommended)
-title: Ubuntu Geonames
-
-# (Required)
+title: Ubuntu Geonames charm
 summary: geoname-lookup.ubuntu.com
-
-# (Required)
 description: |
-  Service wherein you can query for timezones and geodata.
+  **Ubuntu Geonames Operator** is a [charm](https://juju.is/charms-architecture)
+  that provides a service to query for timezones and geodata.
 
-# (Required for 'charm' type)
-# A list of environments (OS version and architecture) where charms must be
-# built on and run on.
+links:
+  website:
+    - https://charmhub.io/ubuntu-geonames
+  issues:
+    - https://github.com/canonical/ubuntu-geonames-operator/issues
+  source:
+    - https://github.com/canonical/ubuntu-geonames-operator
+
 base: ubuntu@24.04
-
 platforms:
   amd64:
-    build-on: amd64
-    build-for: amd64
-
-
 
 parts:
-  ubuntu-geonames:
-    plugin: charm
+  ubuntu-geonames-charm:
     source: .
-    charm-entrypoint: src/charm.py
-    build-packages: [libffi-dev, libgit2-dev]
-    charm-binary-python-packages: [pygit2]
+    plugin: uv
+    build-packages: [git]
+    build-snaps: [astral-uv]
+    override-build: |
+      craftctl default  # Run the default build steps.
+      git describe --always > $CRAFT_PART_INSTALL/version
 
-# (Optional) Configuration options for the charm
-# This config section defines charm config options, and populates the Configure
-# tab on Charmhub.
-# More information on this section at https://juju.is/docs/sdk/charmcraft-yaml#heading--config
-# General configuration documentation: https://juju.is/docs/sdk/config
 charm-libs:
   - lib: traefik_k8s.ingress
     version: "2"
@@ -57,11 +40,10 @@ requires:
 
 config:
   options:
-    # An example config option to customise the log level
     log-level:
       description: |
         Configures the log level of the application.
-
+        
         Acceptable values are: "info", "debug", "warning", "error" and "critical"
       default: "debug"
       type: string
