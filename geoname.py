@@ -13,7 +13,7 @@ except ImportError:
 app = Flask(__name__)
 
 
-SPHINXSEARCH_QUERY = 'SELECT id FROM geonames WHERE MATCH(\'"%s"/1\') '
+SPHINXSEARCH_QUERY = 'SELECT id FROM geonames WHERE MATCH(\'"%s"/1\') ORDER BY population DESC LIMIT 100'
 
 statement = """
 SELECT
