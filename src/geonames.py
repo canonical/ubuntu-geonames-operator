@@ -161,7 +161,10 @@ class Geonames:
         shutil.copy(charm_dir / conf_file_name, sphinx_conf_dir / conf_file_name)
 
     def _build_indexes(self):
-        self._run_subprocess_command("indexer --rotate geonames", check=True)
+        logger.info("Running 'indexer --rotate geonames'")
+        proc = subprocess.run("indexer --rotate geonames", shell=True, env=self.env)
+        if proc.returncode not in (0, 2):
+            raise subprocess.CalledProcessError(proc.returncode, "indexer --rotate geonames")
 
     def _enable_sphinxsearch(self):
         Path("/etc/default/sphinxsearch").write_text("START=yes")
