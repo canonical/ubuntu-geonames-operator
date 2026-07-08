@@ -60,14 +60,27 @@ class UnixUser:
 class Geonames:
     """Represent a geonames instance in the workload."""
 
-    def _run_subprocess_command(self, command: str) -> bool:
-        """Run a shell command, logging and swallowing failures."""
+    def __init__(self):
+        self.env = os.environ.copy()
+        juju_http_proxy = self.env.get("JUJU_CHARM_HTTP_PROXY")
+        juju_https_proxy = self.env.get("JUJU_CHARM_HTTPS_PROXY")
+        if juju_http_proxy:
+            self.env["HTTP_PROXY"] = juju_http_proxy
+            self.env["http_proxy"] = juju_http_proxy
+        if juju_https_proxy:
+            self.env["HTTPS_PROXY"] = juju_https_proxy
+            self.env["https_proxy"] = juju_https_proxy
+
+    def _run_subprocess_command(self, command: str, check: bool = False) -> bool:
+        """Run a shell command. If check is True, raise on failure; otherwise log and return False."""
         try:
             logger.info("Running the following command '%s'", command)
-            subprocess.run(command, check=True, shell=True)
+            subprocess.run(command, check=True, shell=True, env=self.env)
             return True
         except subprocess.CalledProcessError as e:
             logger.info("Failed to run '%s' with '%s'", command, e)
+            if check:
+                raise
             return False
 
     def _install_packages(self):
@@ -135,7 +148,7 @@ class Geonames:
     def _run_import(self):
         """Run import-geonames.sh, which downloads and populates the database."""
         import_script = Path(__file__).parent / "import-geonames.sh"
-        self._run_subprocess_command(f"bash {import_script}")
+        self._run_subprocess_command(f"bash {import_script}", check=True)
 
     def _setup_sphinx_conf(self):
         """Replace the packaged sphinxsearch config with the repository's."""
@@ -148,7 +161,7 @@ class Geonames:
         shutil.copy(charm_dir / conf_file_name, sphinx_conf_dir / conf_file_name)
 
     def _build_indexes(self):
-        self._run_subprocess_command("indexer --rotate geonames")
+        self._run_subprocess_command("indexer --rotate geonames", check=True)
 
     def _enable_sphinxsearch(self):
         Path("/etc/default/sphinxsearch").write_text("START=yes")
