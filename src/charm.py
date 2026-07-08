@@ -51,7 +51,7 @@ class UbuntuGeonamesCharm(ops.CharmBase):
             )
             return
         self.unit.set_ports(80)
-        self.unit.status = ops.ActiveStatus("Done!")
+        self.unit.status = ops.ActiveStatus()
 
 
 if __name__ == "__main__":  # pragma: nocover
