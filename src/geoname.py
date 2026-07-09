@@ -13,7 +13,7 @@ except ImportError:
 app = Flask(__name__)
 
 
-SPHINXSEARCH_QUERY = 'SELECT id FROM geonames WHERE MATCH(\'"%s"\') ORDER BY population DESC LIMIT 100'
+SPHINXSEARCH_QUERY = 'SELECT id FROM geonames WHERE MATCH(%s) ORDER BY population DESC LIMIT 100'
 
 statement = """
 SELECT
@@ -61,7 +61,7 @@ ORDER by population desc, priority asc, name_len asc;
 def handle_query(query):
     with pymysql.connect(host="127.0.0.1", port=9306, cursorclass=pymysql.cursors.DictCursor) as db:
         with db.cursor() as cur:
-            cur.execute(SPHINXSEARCH_QUERY % query)
+            cur.execute(SPHINXSEARCH_QUERY, (f'"{query}"',))
             row = cur.fetchall()
     result = row
     ret = []
