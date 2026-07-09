@@ -72,7 +72,10 @@ class Geonames:
             self.env["https_proxy"] = juju_https_proxy
 
     def _run_subprocess_command(self, command: str, check: bool = False) -> bool:
-        """Run a shell command. If check is True, raise on failure; otherwise log and return False."""
+        """Run a shell command.
+
+        If check is True, raise on failure; otherwise log and return False.
+        """
         try:
             logger.info("Running the following command '%s'", command)
             subprocess.run(command, check=True, shell=True, env=self.env)

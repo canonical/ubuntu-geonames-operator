@@ -18,7 +18,7 @@ def geonames_instance():
 @patch("geonames.subprocess.run")
 def test_run_subprocess_command_returns_true_on_success(mock_run, geonames_instance):
     assert geonames_instance._run_subprocess_command("true") is True
-    mock_run.assert_called_once_with("true", check=True, shell=True)
+    mock_run.assert_called_once_with("true", check=True, shell=True, env=geonames_instance.env)
 
 
 @patch("geonames.subprocess.run")
@@ -61,12 +61,14 @@ def test_install_packages_raises_when_package_error(mock_apt, geonames_instance)
 @patch("geonames.os")
 def test_copy_files_copies_to_target_location(mock_os, mock_shutil, geonames_instance):
     geonames_instance._run_subprocess_command = MagicMock(return_value=True)
-    
+
     geonames_instance._copy_files()
 
     mock_os.makedirs.assert_called_once_with(geonames.REPO_LOCATION, exist_ok=True)
     assert mock_shutil.copy.call_count == 2
-    geonames_instance._run_subprocess_command.assert_called_once_with(f"chown -R ubuntu:ubuntu {geonames.REPO_LOCATION}")
+    geonames_instance._run_subprocess_command.assert_called_once_with(
+        f"chown -R ubuntu:ubuntu {geonames.REPO_LOCATION}"
+    )
 
 
 def test_wait_for_postgres_returns_when_ready(geonames_instance):

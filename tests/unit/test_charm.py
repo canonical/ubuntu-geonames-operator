@@ -33,7 +33,7 @@ def test_install_success(install_mock, ctx, base_state):
 
     out = ctx.run(ctx.on.install(), base_state)
 
-    assert out.unit_status == ActiveStatus("Done!")
+    assert out.unit_status == ActiveStatus()
     assert install_mock.called
 
 
@@ -43,7 +43,7 @@ def test_upgrade_success(install_mock, ctx, base_state):
 
     out = ctx.run(ctx.on.upgrade_charm(), base_state)
 
-    assert out.unit_status == ActiveStatus("Done!")
+    assert out.unit_status == ActiveStatus()
     assert install_mock.called
 
 
